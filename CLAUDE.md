@@ -44,9 +44,22 @@ Examples:
 # Run full Counsell et al. analysis
 python3 eos_counsell_processor.py
 
+# Create detailed matplotlib plots
+PYTHONPATH=/home/themanaspandey/.local/lib/python3.12/site-packages python3 matplotlib_eos_plotter.py
+
+# Run basic EoS analysis
+python3 eos_analyzer.py
+
+# Show data samples
+python3 show_data_sample.py
+
 # Extract text from PDF (if needed)
 python3 pdf_reader.py EoS_step_by_step.pdf
 ```
+
+## Git Configuration
+
+Line ending handling is configured in `.gitattributes` to use LF endings for all text files to avoid CRLF warnings on Windows/WSL systems.
 
 ## Documentation
 
