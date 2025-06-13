@@ -1,2 +1,11 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Set line ending handling for different file types
+*.py text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.dat text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+
+# Binary files
+*.png binary
+*.pdf binary
