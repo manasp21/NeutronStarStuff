@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(awk:*)",
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(grep:*)",
+      "Bash(apt list:*)"
     ],
     "deny": []
   }
