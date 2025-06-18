@@ -107,6 +107,25 @@ class CounsellEoSProcessor:
                     data.append(row)
         return data
     
+    def load_eos_data_from_dat(self, filepath: str) -> List[Dict[str, float]]:
+        """Load EoS data directly from a .dat file path with robust encoding."""
+        data = []
+        with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+            for line in f:
+                # Split by tab character to match file format
+                values = line.strip().split('\t')
+                if len(values) == 4:
+                    try:
+                        data.append({
+                            'epsilon': float(values[0]),
+                            'p': float(values[1]),
+                            'n': float(values[2]),
+                            'mu': float(values[3])
+                        })
+                    except ValueError:
+                        continue
+        return data
+        
     def step1_identify_phase_transition(self, data: List[Dict[str, float]]) -> Dict[str, float]:
         """
         Step 1: Identify and quantify the first-order phase transition.
@@ -231,7 +250,7 @@ class CounsellEoSProcessor:
         
         return main_transition
     
-    def step2_calculate_stellar_structure(self, data: List[Dict[str, float]], 
+    def step2_calculate_stellar_structure(self, data: List[Dict[str, float]],
                                         stellar_mass: float = 1.4) -> Dict:
         """
         Step 2: Solve TOV equations for stellar structure.
@@ -243,11 +262,20 @@ class CounsellEoSProcessor:
         Returns:
             Dictionary with stellar structure profiles
         """
-        print(f"Step 2: Calculating stellar structure for M = {stellar_mass} M☉...")
+        print(f"Step 2: Calculating stellar structure for M = {stellar_mass} solar masses...")
+        print(f"Data length: {len(data)}")
+        if len(data) == 0:
+            raise ValueError("No data provided for stellar structure calculation")
+            
+        # Print first 5 data points for debugging (without Unicode characters)
+        print("First 5 data points:")
+        for i in range(min(5, len(data))):
+            print(f"  Point {i+1}: epsilon={data[i]['epsilon']} p={data[i]['p']} n={data[i]['n']} mu={data[i]['mu']}")
         
         # Convert EoS to geometric units (c = G = 1)
         # Energy density: MeV/fm³ → 1/km²
         # Pressure: MeV/fm³ → 1/km²
+        print("Converting to geometric units...")
         eos_geom = []
         for point in data:
             eos_geom.append({
@@ -257,6 +285,7 @@ class CounsellEoSProcessor:
         
         # Sort by energy density
         eos_geom.sort(key=lambda x: x['epsilon'])
+        print(f"Geometric EoS length: {len(eos_geom)}")
         
         # Create interpolation function for p(ε)
         def pressure_from_epsilon(eps):
@@ -625,7 +654,7 @@ class CounsellEoSProcessor:
         """
         print(f"\n{'='*60}")
         print(f"Processing EoS model: {model_name}")
-        print(f"Stellar mass: {stellar_mass} M☉")
+        print(f"Stellar mass: {stellar_mass} solar masses")
         print(f"{'='*60}")
         
         # Load EoS data

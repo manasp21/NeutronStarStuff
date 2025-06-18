@@ -10,6 +10,9 @@ import math
 from typing import List, Dict
 
 
+from eos_counsell_processor import CounsellEoSProcessor
+
+
 def load_eos_data(model_name: str) -> List[Dict[str, float]]:
     """Load EoS data from CSV file."""
     csv_files = glob.glob("EoS_*.csv")
@@ -271,7 +274,50 @@ def plot_specific_model(model_name: str):
             
     except Exception as e:
         print(f"Error plotting {model_name}: {e}")
+    
+        
 
+def plot_mass_radius(eos_file: str):
+    """Plot mass-radius relation for a given EoS file."""
+    try:
+        # Load EoS data using CounsellEoSProcessor
+        processor = CounsellEoSProcessor(eos_file)
+        
+        # Load EoS data from .dat file with proper encoding
+        try:
+            data = processor.load_eos_data_from_dat(eos_file)
+        except Exception as e:
+            print(f"Error loading EoS data: {e}")
+            return
+        
+        # Get stellar structure for 1.4 solar mass star
+        structure = processor.step2_calculate_stellar_structure(data, stellar_mass=1.4)
+        
+        # Extract mass and radius profiles
+        radii = structure['radii']
+        masses_km = structure['masses']
+        
+        # Filter out negative and zero radii
+        valid_indices = [i for i, r in enumerate(radii) if r > 0.1]
+        radii = [radii[i] for i in valid_indices]
+        masses_km = [masses_km[i] for i in valid_indices]
+        
+        # Convert masses to solar masses (M_sun_km = 1.476)
+        solar_masses = [m / 1.476 for m in masses_km]
+        
+        # Plot using matplotlib
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 6))
+        plt.plot(radii, solar_masses, 'b-', linewidth=2)
+        plt.xlabel('Radius (km)')
+        plt.ylabel('Mass (solar masses)')
+        plt.title(f'Mass-Radius Profile for {eos_file}')
+        plt.grid(True, alpha=0.3)
+        plt.savefig('mass_radius_plot.png', dpi=150, bbox_inches='tight')
+        plt.show()
+        print("Plot saved as 'mass_radius_plot.png'")
+    except Exception as e:
+        print(f"Error generating mass-radius plot: {e}")
 
 def main():
     """Main function."""
@@ -281,7 +327,9 @@ def main():
         model_name = sys.argv[1]
         plot_specific_model(model_name)
     else:
-        plot_eos_comparison()
+        # Generate mass-radius plot for the default EoS file
+        eos_file = 'EoS_DD2MEV_p15_CSS1_1.4_ncrit_0.335561_ecrit_334.285_pcrit_42.1651.dat'
+        plot_mass_radius(eos_file)
 
 
 if __name__ == "__main__":
